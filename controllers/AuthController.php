@@ -2,8 +2,8 @@
 class AuthController {
     
     // Default hardcoded credentials for demo
-    private $valid_username = "admin";
-    private $valid_password = "password123";
+    private $validUsername = "admin";
+    private $validPassword = "password123";
 
     public function login() {
         session_start();
@@ -24,7 +24,7 @@ class AuthController {
             $username = $_POST['username'] ?? '';
             $password = $_POST['password'] ?? '';
 
-            if ($username === $this->valid_username && $password === $this->valid_password) {
+            if ($username === $this->validUsername && $password === $this->validPassword) {
                 // Login successful
                 $_SESSION['loggedin'] = true;
                 $_SESSION['username'] = $username;

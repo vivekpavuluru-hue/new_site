@@ -48,6 +48,7 @@
                             elseif ($colName === 'indent_no') echo 'Indent No';
                             elseif ($colName === 'indent_date') echo 'Indent Date';
                             elseif ($colName === 'approved_status') echo 'Approved Status';
+                            elseif ($colName === 'approved_by') echo 'Approved By';
                             elseif ($colName === 'approved_date') echo 'Approved Date';
                             else echo htmlspecialchars(ucwords(str_replace('_', ' ', $colName))); 
                         ?></th>

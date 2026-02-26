@@ -48,6 +48,10 @@ class StockTransferModel {
                 si.indent_no AS `indent_no`,
                 DATE_FORMAT(si.indent_date, '%Y-%m-%d') AS `indent_date`,
                 mrr.approval_status AS `approved_status`,
+                CASE 
+                    WHEN mrr.approval_status = 'approval_pending' THEN 'Pending'
+                    ELSE mr.name 
+                END AS `approved_by`,
                 DATE_FORMAT(MAX(mrr.updated_at), '%Y-%m-%d') AS `approved_date`
             FROM `stocktransfer_indents` si
             LEFT JOIN `mail_requisitions_responses` mrr 
@@ -64,7 +68,7 @@ class StockTransferModel {
         $result = $this->conn->query($query);
         
         $records = [];
-        $columns = ['plant_name', 'indent_no', 'indent_date', 'approved_status', 'approved_date'];
+        $columns = ['plant_name', 'indent_no', 'indent_date', 'approved_status', 'approved_by', 'approved_date'];
         
         if ($result && $result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
