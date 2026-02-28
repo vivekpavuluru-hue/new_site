@@ -41,17 +41,33 @@ class StockTransferModel {
             $limit = 150 - $offset;
         }
 
-        // Fetch plant name, indent_no, indent_date, approved_status, approved_date
+        // Fetch plant name, indent_no, indent_date, overall_status, approval_details, approved_date
         $query = "
             SELECT 
                 p.plant_name AS `plant_name`,
                 si.indent_no AS `indent_no`,
                 DATE_FORMAT(si.indent_date, '%Y-%m-%d') AS `indent_date`,
-                mrr.approval_status AS `approved_status`,
                 CASE 
-                    WHEN mrr.approval_status = 'approval_pending' THEN 'Pending'
-                    ELSE mr.name 
-                END AS `approved_by`,
+                    WHEN COUNT(mrr.approval_status) = 0 THEN 'Pending'
+                    WHEN SUM(CASE WHEN mrr.approval_status = 'approval_pending' THEN 1 ELSE 0 END) > 0 THEN 'Pending'
+                    WHEN SUM(CASE WHEN mrr.approval_status = 'rejected' THEN 1 ELSE 0 END) > 0 THEN 'Rejected'
+                    WHEN SUM(CASE WHEN mrr.approval_status = 'approved' THEN 1 ELSE 0 END) = COUNT(mrr.approval_status) THEN 'Approved'
+                    ELSE 'Unknown'
+                END AS `overall_status`,
+                GROUP_CONCAT(
+                    CONCAT(mr.name, ' (', 
+                        CASE 
+                            WHEN mrr.approval_status = 'approval_pending' THEN 'Pending'
+                            WHEN mrr.approval_status = 'approved' THEN 'APPROVED'
+                            WHEN mrr.approval_status = 'rejected' THEN 'REJECTED'
+                            ELSE UPPER(mrr.approval_status)
+                        END, 
+                    ')',
+                    IF(mrr.updated_at IS NOT NULL AND mrr.approval_status != 'approval_pending', 
+                        CONCAT(' - ', DATE_FORMAT(mrr.updated_at, '%d-%b-%Y %h:%i %p')), 
+                        '')
+                    ) SEPARATOR '||'
+                ) AS `approval_details`,
                 DATE_FORMAT(MAX(mrr.updated_at), '%Y-%m-%d') AS `approved_date`
             FROM `stocktransfer_indents` si
             LEFT JOIN `mail_requisitions_responses` mrr 
@@ -68,7 +84,7 @@ class StockTransferModel {
         $result = $this->conn->query($query);
         
         $records = [];
-        $columns = ['plant_name', 'indent_no', 'indent_date', 'approved_status', 'approved_by', 'approved_date'];
+        $columns = ['plant_name', 'indent_no', 'indent_date', 'overall_status', 'approval_details', 'approved_date'];
         
         if ($result && $result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {

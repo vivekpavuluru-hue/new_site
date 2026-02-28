@@ -17,7 +17,7 @@ class AuthController {
         $error = '';
         if (isset($_SESSION['timeout_message'])) {
             $error = $_SESSION['timeout_message'];
-            unset($_SESSION['timeout_message']);
+            unset($_SESSION['timeout_message']) ;
         }
 
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
